@@ -1,3 +1,4 @@
+
 """
 Main entry point for the port scanner web application
 
@@ -15,10 +16,6 @@ ensure_directories()  # Create directory structure for the application
 create_templates()    # Generate HTML templates if they don't exist
 create_css()          # Generate CSS stylesheets if they don't exist
 create_js()           # Generate JavaScript files if they don't exist
-
-# For Vercel deployment - export the app instance
-# Vercel looks for an 'app' object to serve as the entry point
-app.debug = False  # Disable debug mode in production
 
 # Step 3: Define the application entry point with Flask app run parameters
 if __name__ == "__main__":
