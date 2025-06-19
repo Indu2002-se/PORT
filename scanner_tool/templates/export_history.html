@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export History - PortSentinel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}">
+    <style>
+        .exports-container {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: var(--bg-element);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            color: var(--text-primary);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .exports-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .exports-table th,
+        .exports-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .exports-table th {
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .exports-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .export-format {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .format-csv {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+        
+        .format-excel {
+            background: rgba(33, 150, 243, 0.2);
+            color: #2196f3;
+        }
+        
+        .format-pdf {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: var(--accent-primary);
+            color: #fff;
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .download-btn:hover {
+            background: var(--accent-secondary);
+            transform: translateY(-2px);
+        }
+        
+        .no-exports {
+            text-align: center;
+            padding: 50px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        .file-size {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .action-column {
+            text-align: center;
+        }
+        
+        .summary-column {
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .user-info{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-left: auto;
+            margin-right: 20px;
+            font-size: 1.2rem;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 50px;
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--text-primary);
+            font-weight: 600;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="binary-rain"></div>
+    
+    <!-- Glassy Navbar -->
+    <nav class="glassy-nav">
+        <div class="nav-content">
+            <div class="logo">PortSentinel</div>
+            <div class="nav-links-container">
+                <div class="nav-links">
+                    
+                    <a href="/scanner">Scanner</a>
+                    <a href="/dashboard">Dashboard</a>
+                    <a href="/export-history" class="active">Export History</a>
+                </div>
+            </div>
+           
+            <div class="nav-right-actions">
+                <div class="theme-switcher">
+                    <button class="theme-btn" id="theme-switcher-btn">🎨</button>
+                    <div class="theme-dropdown" id="theme-dropdown">
+                        <a href="#" data-theme="default">Default</a>
+                        <a href="#" data-theme="light">Light</a>
+                        <a href="#" data-theme="cyberpunk">Cyberpunk</a>
+                    </div>
+                </div>
+                <div class="user-info">
+                    <span class="username">{{ session.get('username', 'User') }}</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="exports-container">
+        <h1 class="page-title">Export History</h1>
+        
+        {% if exports and exports|length > 0 %}
+            <table class="exports-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Target Host</th>
+                        <th>Format</th>
+                        <th>Summary</th>
+                        <th>Size</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for export in exports %}
+                        <tr>
+                            <td>{{ export.export_date }}</td>
+                            <td>{{ export.target_host }}</td>
+                            <td>
+                                <span class="export-format format-{{ export.export_format }}">
+                                    {{ export.export_format.upper() }}
+                                </span>
+                            </td>
+                            <td class="summary-column" title="{{ export.summary }}">
+                                {{ export.summary }}
+                            </td>
+                            <td class="file-size">
+                                {% if export.file_size %}
+                                    {% if export.file_size > 1048576 %}
+                                        {{ (export.file_size / 1048576)|round(2) }} MB
+                                    {% elif export.file_size > 1024 %}
+                                        {{ (export.file_size / 1024)|round(2) }} KB
+                                    {% else %}
+                                        {{ export.file_size }} bytes
+                                    {% endif %}
+                                {% else %}
+                                    Unknown
+                                {% endif %}
+                            </td>
+                            <td class="action-column">
+                                <a href="{{ url_for('download_export', export_id=export.id) }}" class="download-btn">
+                                    Download
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="no-exports">
+                <p>No export history found. Start scanning and exporting results to see them here.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Theme Switcher Logic
+            const themeSwitcherBtn = document.getElementById('theme-switcher-btn');
+            const themeDropdown = document.getElementById('theme-dropdown');
+
+            if (themeSwitcherBtn) {
+                themeSwitcherBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    themeDropdown.classList.toggle('show');
+                });
+            }
+
+            document.addEventListener('click', (e) => {
+                if (themeDropdown && themeDropdown.classList.contains('show') && themeSwitcherBtn && !themeSwitcherBtn.contains(e.target)) {
+                    themeDropdown.classList.remove('show');
+                }
+            });
+
+            function applyTheme(themeName) {
+                document.body.className = '';
+                if (themeName !== 'default') {
+                    document.body.classList.add(themeName + '-theme');
+                }
+                localStorage.setItem('dashboardTheme', themeName);
+            }
+
+            if (themeDropdown) {
+                themeDropdown.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'A') {
+                        e.preventDefault();
+                        const theme = e.target.dataset.theme;
+                        applyTheme(theme);
+                        themeDropdown.classList.remove('show');
+                    }
+                });
+            }
+
+            const savedTheme = localStorage.getItem('dashboardTheme') || 'default';
+            applyTheme(savedTheme);
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PortSentinel - Advanced Port Scanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Glassy Navbar -->
+    <nav class="glassy-nav">
+        <div class="nav-content">
+            <div class="logo">PortSentinel</div>
+            <div class="nav-links-container">
+                <div class="nav-links">
+                    <a href="#features">Features</a>
+                    <a href="#about">About</a>
+                    <a href="#feedback">Feedback</a>
+                    {% if session.get('user_id') %}
+                        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                    {% endif %}
+                </div>
+            </div>
+           
+            <div class="nav-right-actions">
+                <div class="theme-switcher">
+                    <button class="theme-btn" id="theme-switcher-btn">🎨</button>
+                    <div class="theme-dropdown" id="theme-dropdown">
+                        <a href="#" data-theme="default">Default</a>
+                        <a href="#" data-theme="light">Light</a>
+                        <a href="#" data-theme="cyberpunk">Cyberpunk</a>
+                    </div>
+                </div>
+                {% if session.get('user_id') %}
+                    <a href="{{ url_for('scanner_page') }}" class="nav-cta">Scanner Dashboard</a>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="nav-cta">Get Started</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="landing-container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <canvas id="binaryRain"></canvas>
+            <header>
+                <h1>PortSentinel</h1>
+                <p class="subtitle">Advanced Port Scanning & Network Security</p>
+            </header>
+            
+            <div class="hero-content">
+                <h2>Secure Your Network Infrastructure</h2>
+                <p>Discover open ports, identify vulnerabilities, and strengthen your network security with our advanced port scanning solution.</p>
+                {% if session.get('user_id') %}
+                    <a href="{{ url_for('scanner_page') }}" class="cta-button">Access Scanner</a>
+                {% else %}
+                    <a href="{{ url_for('auth.signup') }}" class="cta-button">Create Free Account</a>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features" id="features">
+            <div class="feature">
+                <div class="icon">🔍</div>
+                <h3>Multi-Threaded Scanning</h3>
+                <p>Lightning-fast port scanning with advanced multi-threading capabilities.</p>
+            </div>
+            <div class="feature">
+                <div class="icon">🛡️</div>
+                <h3>Security First</h3>
+                <p>Comprehensive security analysis with detailed vulnerability reports.</p>
+            </div>
+            <div class="feature">
+                <div class="icon">📊</div>
+                <h3>Real-Time Analytics</h3>
+                <p>Monitor scan progress and results in real-time with interactive visualizations.</p>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="about-section" id="about">
+            <h2 class="section-title">Why Choose PortSentinel?</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <p>PortSentinel is a state-of-the-art port scanning solution designed for security professionals and network administrators.</p>
+                    <ul class="feature-list">
+                        <li>Advanced multi-threaded scanning engine</li>
+                        <li>Comprehensive port status analysis</li>
+                        <li>Detailed service identification</li>
+                        <li>Export results in multiple formats</li>
+                        <li>User-friendly interface with real-time updates</li>
+                    </ul>
+                </div>
+                <div class="about-image">
+                    <img src="{{ url_for('static', filename='images/abs.jpg') }}" alt="Network Security Visualization">
+                </div>
+            </div>
+        </section>
+
+        <!-- Feedback Section -->
+        <section class="feedback-section" id="feedback">
+            <h2 class="section-title">What Users Say</h2>
+            
+            <!-- Feedback Form -->
+            <div class="feedback-form-container">
+                <h3>Submit Your Feedback</h3>
+                <form id="feedback-form" class="feedback-form">
+                    <div class="form-group">
+                        <label for="feedback-name">Your Name</label>
+                        <input type="text" id="feedback-name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Rating</label>
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" checked>
+                            <label for="star5" title="5 stars">★</label>
+                            <input type="radio" id="star4" name="rating" value="4">
+                            <label for="star4" title="4 stars">★</label>
+                            <input type="radio" id="star3" name="rating" value="3">
+                            <label for="star3" title="3 stars">★</label>
+                            <input type="radio" id="star2" name="rating" value="2">
+                            <label for="star2" title="2 stars">★</label>
+                            <input type="radio" id="star1" name="rating" value="1">
+                            <label for="star1" title="1 star">★</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="feedback-message">Your Feedback</label>
+                        <textarea id="feedback-message" name="message" rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Submit Feedback</button>
+                    <div id="feedback-status" class="feedback-status"></div>
+                </form>
+            </div>
+            
+            <!-- Feedback Display -->
+            <h3 class="feedback-title">User Testimonials</h3>
+            <div class="feedback-grid">
+                {% for feedback in approved_feedback %}
+                <div class="feedback-item">
+                    <div class="user-avatar">👤</div>
+                    <div class="rating-display">
+                        {% for i in range(5) %}
+                            <span class="star {% if i < feedback.rating %}filled{% endif %}">★</span>
+                        {% endfor %}
+                    </div>
+                    <p class="feedback-text">"{{ feedback.message }}"</p>
+                    <p class="user-name">{{ feedback.name }}</p>
+                </div>
+                {% endfor %}
+                
+                {% if not approved_feedback or approved_feedback|length == 0 %}
+                <div class="no-feedback">
+                    <p>No feedback submissions yet. Be the first to share your thoughts!</p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="glassy-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>PortSentinel</h3>
+                <p>Advanced port scanning solution for modern network security.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <a href="#features">Features</a>
+                <a href="#about">About</a>
+                <a href="#feedback">Feedback</a>
+            </div>
+            <div class="footer-section">
+                <h3>Account</h3>
+                {% if session.get('user_id') %}
+                    <a href="{{ url_for('scanner_page') }}">Scanner Dashboard</a>
+                    <a href="{{ url_for('auth.logout') }}">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}">Login</a>
+                    <a href="{{ url_for('auth.signup') }}">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 PortSentinel. All rights reserved.</p>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Binary Rain Effect
+            const canvas = document.getElementById('binaryRain');
+            const ctx = canvas.getContext('2d');
+
+            // Set canvas size to match hero section
+            function resizeCanvas() {
+                const heroSection = document.querySelector('.hero-section');
+                canvas.width = heroSection.offsetWidth;
+                canvas.height = heroSection.offsetHeight;
+            }
+
+            // Initial resize
+            resizeCanvas();
+
+            // Resize canvas when window is resized
+            window.addEventListener('resize', resizeCanvas);
+
+            // Binary characters
+            const binaryChars = '01';
+            const fontSize = 14;
+            const columns = Math.floor(canvas.width / fontSize);
+            const drops = new Array(columns).fill(1);
+
+            // Set text properties
+            ctx.font = fontSize + 'px monospace';
+
+            function draw() {
+                // Semi-transparent black background for trail effect
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Set text color with gradient from cyan to purple
+                ctx.fillStyle = '#64ffd8';
+
+                // Draw the binary characters
+                for (let i = 0; i < drops.length; i++) {
+                    // Random binary character
+                    const char = binaryChars[Math.floor(Math.random() * binaryChars.length)];
+                    
+                    // Draw the character
+                    ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+
+                    // Reset position if it reaches bottom or randomly
+                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.98) {
+                        drops[i] = 0;
+                    }
+
+                    // Move drop
+                    drops[i]++;
+                }
+            }
+
+            // Animation loop
+            setInterval(draw, 50);
+
+            // Theme Switcher Logic
+            const themeSwitcherBtn = document.getElementById('theme-switcher-btn');
+            const themeDropdown = document.getElementById('theme-dropdown');
+
+            if (themeSwitcherBtn) {
+                themeSwitcherBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    themeDropdown.classList.toggle('show');
+                });
+            }
+
+            document.addEventListener('click', (e) => {
+                if (themeDropdown && themeDropdown.classList.contains('show') && themeSwitcherBtn && !themeSwitcherBtn.contains(e.target)) {
+                    themeDropdown.classList.remove('show');
+                }
+            });
+
+            function applyTheme(themeName) {
+                document.body.className = '';
+                if (themeName !== 'default') {
+                    document.body.classList.add(themeName + '-theme');
+                }
+                localStorage.setItem('dashboardTheme', themeName);
+            }
+
+            if (themeDropdown) {
+                themeDropdown.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'A') {
+                        e.preventDefault();
+                        const theme = e.target.dataset.theme;
+                        applyTheme(theme);
+                        themeDropdown.classList.remove('show');
+                    }
+                });
+            }
+
+            const savedTheme = localStorage.getItem('dashboardTheme') || 'default';
+            applyTheme(savedTheme);
+
+            // Supabase Realtime Feedback
+            const supabaseUrl = "https://tuhtempenltbwzjhrzmx.supabase.co";
+            const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1aHRlbXBlbmx0Ynd6amhyem14Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzMjE5NjgsImV4cCI6MjA2NTg5Nzk2OH0.9eqF00LfCu1k_u8zxVEKhQs3bYwgVbvQ5pzW1zuzvAw";
+            const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+            function addFeedbackToGrid(feedback) {
+                // Prevent adding duplicates
+                if (document.getElementById(`feedback-${feedback.id}`)) {
+                    return;
+                }
+
+                const feedbackGrid = document.querySelector('.feedback-grid');
+                const noFeedbackMessage = feedbackGrid.querySelector('.no-feedback');
+                if (noFeedbackMessage) {
+                    noFeedbackMessage.remove();
+                }
+
+                const feedbackItem = document.createElement('div');
+                feedbackItem.classList.add('feedback-item');
+                feedbackItem.id = `feedback-${feedback.id}`;
+                
+                let stars = '';
+                for (let i = 0; i < 5; i++) {
+                    stars += `<span class="star ${i < feedback.rating ? 'filled' : ''}">★</span>`;
+                }
+
+                feedbackItem.innerHTML = `
+                    <div class="user-avatar">👤</div>
+                    <div class="rating-display">${stars}</div>
+                    <p class="feedback-text">"${feedback.message}"</p>
+                    <p class="user-name">${feedback.name}</p>
+                `;
+
+                feedbackGrid.prepend(feedbackItem); // Add new feedback to the top
+            }
+
+            const channel = supabase.channel('public:feedback')
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'feedback' }, payload => {
+                    console.log('Feedback update received:', payload.new);
+                    const updatedFeedback = payload.new;
+
+                    if (updatedFeedback.is_approved) {
+                        addFeedbackToGrid(updatedFeedback);
+                    }
+                })
+                .subscribe();
+
+            // Feedback form submission
+            const feedbackForm = document.getElementById('feedback-form');
+            const feedbackStatus = document.getElementById('feedback-status');
+
+            function addTemporaryFeedback(formData) {
+                const feedbackGrid = document.querySelector('.feedback-grid');
+                const noFeedback = feedbackGrid.querySelector('.no-feedback');
+                if (noFeedback) {
+                    noFeedback.style.display = 'none';
+                }
+
+                const name = formData.get('name');
+                const message = formData.get('message');
+                const rating = parseInt(formData.get('rating'));
+
+                const tempFeedback = document.createElement('div');
+                tempFeedback.classList.add('feedback-item', 'temp-feedback');
+
+                let stars = '';
+                for (let i = 0; i < 5; i++) {
+                    stars += `<span class="star ${i < rating ? 'filled' : ''}">★</span>`;
+                }
+
+                tempFeedback.innerHTML = `
+                    <div class="user-avatar">👤</div>
+                    <div class="rating-display">${stars}</div>
+                    <p class="feedback-text">"${message}"</p>
+                    <p class="user-name">${name} <span style="font-style: italic; color: #aaa;">(Pending approval)</span></p>
+                `;
+                
+                feedbackGrid.prepend(tempFeedback);
+            }
+
+            feedbackForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const formData = new FormData(feedbackForm);
+
+                try {
+                    const response = await fetch("{{ url_for('submit_feedback') }}", {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.status === 'success') {
+                        feedbackStatus.textContent = result.message;
+                        feedbackStatus.className = 'feedback-status success';
+                        addTemporaryFeedback(formData);
+                        feedbackForm.reset();
+                    } else {
+                        feedbackStatus.textContent = result.message || 'Error submitting feedback. Please try again.';
+                        feedbackStatus.className = 'feedback-status error';
+                    }
+                } catch (error) {
+                    feedbackStatus.textContent = 'An unexpected error occurred. Please try again.';
+                    feedbackStatus.className = 'feedback-status error';
+                }
+
+                setTimeout(() => {
+                    feedbackStatus.textContent = '';
+                    feedbackStatus.className = 'feedback-status';
+                }, 5000);
+            });
+        });
+    </script>
+</body>
+</html>

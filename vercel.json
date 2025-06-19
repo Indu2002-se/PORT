@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "index.py",
+      "use": "@vercel/python",
+      "config": { 
+        "runtime": "python3.9",
+        "buildCommand": "chmod +x build.sh && ./build.sh"
+      }
+    },
+    {
+      "src": "scanner_tool/static/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/scanner_tool/static/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "index.py"
+    }
+  ],
+  "env": {
+    "PYTHONPATH": "."
+  }
+} 
