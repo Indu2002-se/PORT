@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Port Scanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="cyber-lines-top"></div>
+    <div class="cyber-lines-bottom"></div>
+    
+    <div class="container">
+        <header>
+            <div class="cyber-header">
+                <div class="cyber-glitch" data-text="PORT·SCAN·v1.0">PORT·SCAN·v1.0</div>
+                <h1>Multi-Threaded Port Scanner</h1>
+                <p class="subtitle">Discover network services with precision</p>
+                <div class="cyber-scanner"></div>
+            </div>
+        </header>
+        
+        <div class="card scan-config tech-card">
+            <div class="card-corner top-left"></div>
+            <div class="card-corner top-right"></div>
+            <div class="card-corner bottom-left"></div>
+            <div class="card-corner bottom-right"></div>
+            
+            <h2><span class="tech-icon">⚙</span> Scan Configuration</h2>
+            <div class="form-group">
+                <label for="target">Target Host:</label>
+                <div class="input-group">
+                    <input type="text" id="target" name="target" placeholder="Enter IP address or hostname" class="form-control tech-input">
+                    <button onclick="useLocalIP()" class="btn btn-secondary tech-btn">
+                        <span class="btn-text">Use Local IP</span>
+                        <span class="btn-icon">⟲</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="port-range">Port Range:</label>
+                <div class="input-group">
+                    <input type="text" id="port-range" name="port-range" placeholder="e.g., 80,443,8000-8100" class="form-control tech-input" value="21,22,23,25,80,443,3306,8080">
+                    <div class="checkbox-wrapper tech-checkbox">
+                        <input type="checkbox" id="use-predefined" name="use-predefined" checked>
+                        <label for="use-predefined">Use Predefined Ports</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group advanced tech-panel">
+                <label for="threads">Threads:</label>
+                <input type="number" id="threads" name="threads" value="10" min="1" max="100" class="form-control-sm tech-input">
+                <div id="thread-warning" class="warning-message" style="display: none; color: #ff5722; font-size: 0.8rem; margin-top: 5px;">
+                    Warning: High thread count may be limited for optimal performance
+                </div>
+                
+                <label for="timeout">Timeout (s):</label>
+                <input type="number" id="timeout" name="timeout" value="1.0" min="0.1" max="10" step="0.1" class="form-control-sm tech-input">
+            </div>
+            
+            <div class="button-group">
+                <button id="scan-button" onclick="startScan()" class="btn btn-primary tech-btn pulse-btn">
+                    <span class="btn-text">Start Scan</span>
+                    <span class="btn-icon">⚡</span>
+                </button>
+                <button id="stop-button" onclick="stopScan()" class="btn btn-danger tech-btn" disabled>
+                    <span class="btn-text">Stop Scan</span>
+                    <span class="btn-icon">✕</span>
+                </button>
+                <button id="export-button" onclick="showExportOptions()" class="btn btn-success tech-btn" disabled>
+                    <span class="btn-text">Export Results</span>
+                    <span class="btn-icon">↓</span>
+                </button>
+                <button onclick="clearResults()" class="btn btn-secondary tech-btn">
+                    <span class="btn-text">Clear</span>
+                    <span class="btn-icon">⟲</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="progress-section tech-progress">
+            <div class="progress-label">Progress:</div>
+            <div class="progress tech-progress-bar">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+            <div id="status-label" class="status-label tech-status">Ready</div>
+        </div>
+        
+        <div class="card results-section tech-card">
+            <div class="card-corner top-left"></div>
+            <div class="card-corner top-right"></div>
+            <div class="card-corner bottom-left"></div>
+            <div class="card-corner bottom-right"></div>
+            
+            <div class="tab-navigation tech-tabs">
+                <button class="tab-button active" onclick="showTab('table-view')">
+                    <span class="tab-icon">◉</span> Table View
+                </button>
+                <button class="tab-button" onclick="showTab('log-view')">
+                    <span class="tab-icon">⋮</span> Log View
+                </button>
+            </div>
+            
+            <div id="table-view" class="tab-content active">
+                <div class="table-container tech-table">
+                    <table id="results-table">
+                        <thead>
+                            <tr>
+                                <th>Host</th>
+                                <th>Port</th>
+                                <th>Status</th>
+                                <th>Service</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-body">
+                            <!-- Results will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="log-view" class="tab-content">
+                <div class="tech-console-header">
+                    <div class="console-controls">
+                        <span class="console-btn"></span>
+                        <span class="console-btn"></span>
+                        <span class="console-btn"></span>
+                    </div>
+                    <div class="console-title">SYSTEM CONSOLE</div>
+                </div>
+                <div id="log-container" class="log-container tech-console">
+                    <!-- Logs will be inserted here -->
+                </div>
+            </div>
+        </div>
+        
+        <div id="export-modal" class="modal tech-modal">
+            <div class="modal-content tech-modal-content">
+                <div class="modal-header">
+                    <h2>Export Options</h2>
+                    <span class="close-button" onclick="closeExportModal()">&times;</span>
+                </div>
+                <div class="export-options">
+                    <button onclick="exportResults('csv')" class="btn btn-primary tech-btn">
+                        <span class="btn-text">CSV File</span>
+                        <span class="btn-icon">↓</span>
+                    </button>
+                    <button onclick="exportResults('excel')" class="btn btn-primary tech-btn">
+                        <span class="btn-text">Excel File</span>
+                        <span class="btn-icon">↓</span>
+                    </button>
+                    <button onclick="exportResults('pdf')" class="btn btn-primary tech-btn">
+                        <span class="btn-text">PDF File</span>
+                        <span class="btn-icon">↓</span>
+                    </button>
+                    <button onclick="closeExportModal()" class="btn btn-secondary tech-btn">
+                        <span class="btn-text">Cancel</span>
+                        <span class="btn-icon">✕</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="tech-footer">
+            <div class="footer-line"></div>
+            <p>PORT SCANNER v1.0.0 | <span id="current-time"></span></p>
+            <div class="tech-badge">MULTITHREADED</div>
+        </footer>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

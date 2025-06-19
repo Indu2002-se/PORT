@@ -11,12 +11,12 @@ load_dotenv()
 
 auth = Blueprint('auth', __name__)
 
-# Initialize Supabase client with hardcoded credentials (for development only)
-supabase_url = "https://tuhtempenltbwzjhrzmx.supabase.co"
-supabase_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1aHRlbXBlbmx0Ynd6amhyem14Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzMjE5NjgsImV4cCI6MjA2NTg5Nzk2OH0.9eqF00LfCu1k_u8zxVEKhQs3bYwgVbvQ5pzW1zuzvAw"
-
 def get_supabase() -> Client:
     """Get Supabase client instance."""
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_key = os.getenv("SUPABASE_KEY")
+    if not supabase_url or not supabase_key:
+        raise ValueError("Supabase URL and Key must be set in environment variables.")
     return create_client(supabase_url, supabase_key)
 
 def init_db():

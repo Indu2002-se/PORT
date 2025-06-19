@@ -35,7 +35,7 @@ load_dotenv()
 # Step 4: Create and configure Flask app
 # The app serves templates from the templates folder and static files from the static folder
 app = Flask(__name__, template_folder='templates', static_folder='static')
-app.secret_key = "scanner_tool_secret_key"  # Hardcoded secret key for development
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "scanner_tool_secret_key_dev")  # Use environment variable
 
 # Register the auth blueprint
 app.register_blueprint(auth)

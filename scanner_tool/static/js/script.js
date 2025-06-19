@@ -4,6 +4,7 @@
     let updateInterval = null;
     let resultCount = 0; // Track the number of found ports
     let currentLogIndex = 0;
+    let typingEffect = false;
 
     // DOM Elements
     const targetInput = document.getElementById('target');
@@ -55,6 +56,38 @@
                 threadWarning.style.display = 'none';
             }
         });
+
+        // Add terminal typing effect to the header
+        const header = document.querySelector('h1');
+        applyTypingEffect(header);
+        
+        // Add some initial tech logs
+        setTimeout(() => {
+            addLogEntry('System initialized', 'info');
+            addLogEntry('Scanner engine loaded', 'info');
+            addLogEntry('Multithreading enabled', 'success');
+            addLogEntry('Ready to scan network targets', 'info');
+        }, 500);
+        
+        // Add input event listeners for "tech feeling"
+        targetInput.addEventListener('focus', () => {
+            addLogEntry(`Target input focused`, 'info');
+        });
+        
+        // Add port range visual feedback
+        portRangeInput.addEventListener('input', () => {
+            validatePortsVisually();
+        });
+        
+        // Add thread count visual feedback
+        threadsInput.addEventListener('input', () => {
+            const threads = parseInt(threadsInput.value);
+            if (!isNaN(threads)) {
+                if (threads > 20) {
+                    addLogEntry(`Warning: High thread count may impact system performance`, 'warning');
+                }
+            }
+        });
     });
 
     // Tab navigation
@@ -80,23 +113,39 @@
     function togglePortInput() {
         if (usePredefinedCheck.checked) {
             portRangeInput.value = '21,22,23,25,80,443,3306,8080';
+            addLogEntry('Using predefined ports', 'info');
         } else {
             portRangeInput.value = '';
+            addLogEntry('Custom port configuration enabled', 'info');
         }
+        
+        // Add tech sound effect
+        playTechSound('toggle');
     }
 
     // Get local IP address
     function useLocalIP() {
+        // Add tech sound effect
+        playTechSound('process');
+        
+        addLogEntry('Detecting local IP address...', 'info');
+        
         fetch('/api/local-ip')
             .then(response => response.json())
             .then(data => {
                 if (data.ip) {
                     targetInput.value = data.ip;
-                    addLogEntry('Local IP detected: ' + data.ip, 'info');
+                    addLogEntry(`Local IP detected: ${data.ip}`, 'success');
+                    
+                    // Visual feedback
+                    targetInput.classList.add('highlight-success');
+                    setTimeout(() => {
+                        targetInput.classList.remove('highlight-success');
+                    }, 1000);
                 }
             })
             .catch(error => {
-                addLogEntry('Error detecting local IP: ' + error, 'error');
+                addLogEntry(`Error detecting local IP: ${error}`, 'error');
             });
     }
 
@@ -625,3 +674,59 @@
             closeDetailsModal();
         }
     };
+
+    // Apply typing effect to an element
+    function applyTypingEffect(element) {
+        if (!element || typingEffect) return;
+        
+        typingEffect = true;
+        const text = element.textContent;
+        element.textContent = '';
+        element.classList.add('typing-effect');
+        
+        let i = 0;
+        const typeInterval = setInterval(() => {
+            if (i < text.length) {
+                element.textContent += text.charAt(i);
+                i++;
+            } else {
+                clearInterval(typeInterval);
+                setTimeout(() => {
+                    element.classList.remove('typing-effect');
+                }, 1000);
+            }
+        }, 80);
+    }
+    
+    // Validate ports visually
+    function validatePortsVisually() {
+        try {
+            const portRangeText = portRangeInput.value.trim();
+            if (!portRangeText) return;
+            
+            // Count total ports
+            let portCount = 0;
+            const sections = portRangeText.split(',');
+            
+            for (const section of sections) {
+                if (section.includes('-')) {
+                    const [start, end] = section.split('-').map(p => parseInt(p.trim()));
+                    if (!isNaN(start) && !isNaN(end) && start <= end) {
+                        portCount += (end - start + 1);
+                    }
+                } else {
+                    if (!isNaN(parseInt(section.trim()))) {
+                        portCount++;
+                    }
+                }
+            }
+            
+            if (portCount > 100) {
+                addLogEntry(`Scan configuration: ${portCount} ports selected`, 'warning');
+            } else if (portCount > 0) {
+                addLogEntry(`Scan configuration: ${portCount} ports selected`, 'info');
+            }
+        } catch (e) {
+            // Silently fail
+        }
+    }

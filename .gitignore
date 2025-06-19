@@ -23,3 +23,7 @@ instance/
 # Project specific
 scan_results/
 scanner_tool/users.db 
+.vercel
+
+# Environment variables
+.env
